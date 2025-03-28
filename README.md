@@ -5,69 +5,80 @@ This section is based on the [Fullstackopen](https://fullstackopen.com/en/part3/
 
 ## 3.10 Phonebook backend step 10
 
-### Integrating the Backend with the Phonebook Frontend
+### Deploying the Backend to Render  
 
-In this exercise, the focus was on integrating the backend with the frontend of the phonebook application. The goal is for the frontend to interact with the backend using HTTP requests to fetch, add, and delete entries. However, updating phone numbers will be handled in **Exercise 3.17**.
+In this step, I deployed the backend of the Phonebook application to **Render**. The frontend remains local or on another service, but only the backend is deployed.  
 
-### Modifications
+### Deployment Process  
 
-- **CORS Middleware**: I added **CORS (Cross-Origin Resource Sharing)** middleware to enable communication between the frontend and backend, especially for development environments where they may run on different ports.
-- **API Integration**: I updated the frontend to correctly call the backend API endpoints to fetch, add, and delete phonebook entries.
+To deploy, I created a separate repository for the backend and followed these steps:  
 
-### Backend Modifications
+1. **Pushed the backend code** to a new GitHub repository.  
+`https://github.com/OzkrMebasser/phone-book-backend-p-3-fulltstackopen`
+2. **Created a new Render service** for a Node.js application.  
+3. **Connected the repository** to Render and set the build command:  
+   ```sh
+   npm install && npm run build && npm start
+   ```  
+4. **Deployed the backend** successfully.  
 
-I updated the backend to support the required routes and to handle HTTP requests from the frontend:
+### Testing the Deployed Backend  
 
-```javascript
-//Added cors middleware to allow frontend connection
-const cors = require("cors");
-app.use(cors());
+Once deployed, I tested the backend using:  
+
+- **Browser**: Checked `https://phone-book-backend-p-3-fulltstackopen.onrender.com/api/persons` to ensure it returns the correct JSON response.  
+- **Postman**: Sent `GET`, `POST`, `DELETE`, and `PUT` requests to verify API functionality.  
+- **VS Code REST Client**: Ran API requests to confirm everything works as expected.  
+
+### Logs and Monitoring  
+
+As a **best practice**, I monitored the logs in Render to ensure the backend was running correctly and there were no unexpected errors.  
+
+#### Example Log Output in Render  
+
+```
+Server running on port 3001  
+Connected to MongoDB  
+GET /api/persons 200  
+POST /api/persons 201  
 ```
 
-### Frontend Modifications
+### Updated `README.md`  
 
-I updated the frontend to use the correct API URL (`http://localhost:3001/api/persons`). This ensures that the frontend makes requests to the correct backend endpoints.
+I also added the **backend deployment link** to my repository’s `README.md` for easy access.  
 
-Here's the updated frontend code:
+#### ✅ Final Result  
 
-```javascript
-import axios from "axios";
-const baseUrl = "http://localhost:3001/api/persons";
+The backend is now live on **Render**, successfully serving requests from the internet. Here are some screenshots of the logs and my API tests in **Postman**:  
 
-const getAllPersons = () => {
-  const req = axios.get(baseUrl);
-  return req.then((res) => res.data);
-};
 
-const addPerson = (newPerson) => {
-  const req = axios.post(baseUrl, newPerson);
-  return req.then((res) => res.data);
-};
+`GET` method,  show all persons 
+URL`https://phone-book-backend-p-3-fulltstackopen.onrender.com/api/persons`
+![Exercise Preview](assets/part-3-exercise-3.10-get-all.gif)
 
-const deletePerson = (id) => {
-  return axios.delete(`${baseUrl}/${id}`);
-};
+`POST` method, to add a new person
+URL`https://phone-book-backend-p-3-fulltstackopen.onrender.com/api/persons`
+![Exercise Preview](assets/part-3-exercise-3.10-post.gif)
 
-const updatePerson = (id, newPerson) => {
-  return axios.put(`${baseUrl}/${id}`, newPerson).then((res) => res.data);
-};
+`GET` method, to get pesons by ID
+URL`https://phone-book-backend-p-3-fulltstackopen.onrender.com/api/persons/1`
+![Exercise Preview](assets/part-3-exercise-3.10-get-by-id.gif)
 
-export default { getAllPersons, addPerson, deletePerson, updatePerson };
-```
+`DELETE` method, to delete a person by ID
+URL`https://phone-book-backend-p-3-fulltstackopen.onrender.com/api/persons/1`
+![Exercise Preview](assets/part-3-exercise-3.10-delete.gif)
 
-### Testing the Integration
+`GET` method, to attempt get a persons that has been deleted, returning 404 when not found
+URL`https://phone-book-backend-p-3-fulltstackopen.onrender.com/api/persons/1`
+![Exercise Preview](assets/part-3-exercise-3.10-after-delete-404.gif)
 
-To test the integration, I ran both the frontend and the backend servers and verified that the following actions work correctly:
+`GET` method, to show `info` of how many people we have uploaded
+URL`https://phone-book-backend-p-3-fulltstackopen.onrender.com/api/info`
+![Exercise Preview](assets/part-3-exercise-3.10-info.gif)
 
-1. **Fetching data**: The frontend successfully makes a GET request to `/api/persons`, and the backend responds with the list of all persons.
-2. **Adding a new person**: When the user submits a form to add a new person, the frontend makes a POST request to `/api/persons`, and the backend adds the new entry to the phonebook.
-3. **Deleting a person**: When the user clicks a delete button, the frontend makes a DELETE request to `/api/persons/:id`, and the backend removes the specified person from the phonebook.
 
-The integration was successful, and the frontend now communicates seamlessly with the backend.
-
-Here’s a demo of the integration output, where the backend and frontend are running on separate servers:
-
-![Exercise Preview](assets/part-3-exercise-3.9.gif)
+`render` dashboard logs
+![Exercise Preview](assets/part-3-exercise-3.10-render-dashboard.gif)
 
 
 ---
