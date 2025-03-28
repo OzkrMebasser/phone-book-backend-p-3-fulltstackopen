@@ -12,6 +12,8 @@ morgan.token("body", function getBody(req) {
 });
 
 const app = express();
+app.use(express.static('dist'))
+
 
 //Added cors middleware to allow frontend connection
 app.use(cors());
