@@ -123,10 +123,140 @@ In this exercise, I generated a **production build** of the frontend and added i
 - API routes (`/api/persons`, `/info`, etc.) should still work as expected.
 - The application should work both locally and in production.
 
-**Here is an image running locally 
-[Exercise Preview](assets/part-3-exercise-3.11-locally-server-and-front-end.gif)**
+**Here is an image running locally
+
+![Exercise Preview](assets/part-3-exercise-3.11-locally-server-and-front-end.gif)
 
 ✅ **The full-stack Phonebook app is now deployed and working!** 🚀
 [!click here to see live preview](https://phone-book-backend-p-3-fulltstackopen.onrender.com/)
 
 ---
+# 3.12: Command-line Database
+
+> [!NOTE]
+> In this exercise, I connected the phonebook application to a **cloud-based MongoDB database** using **MongoDB Atlas**.
+
+
+**Code of this project is in my folling GitHub repository**  
+`https://github.com/OzkrMebasser/phone-book-backend-p-3-fulltstackopen` 
+[click here!](https://github.com/OzkrMebasser/phone-book-backend-p-3-fulltstackopen)
+
+
+## Setting Up MongoDB Atlas
+
+1. **Created a MongoDB Atlas account** and set up a new cluster.
+2. **Created a new database** named `phonebook` with a collection named `persons`.
+3. **Generated a connection string** and stored it securely.
+
+## Implementing the `mongo.js` Script
+
+I created a `mongo.js` file to handle **command-line interactions** with the database. This script allows adding new contacts and listing existing ones.
+
+### Installation of Dependencies
+
+To connect to MongoDB, I installed **Mongoose** in the project:
+
+```sh
+npm install mongoose
+```
+
+### Structure of `mongo.js`
+
+The script works in two ways:
+
+1. **Listing all contacts** if only the password is provided.
+2. **Adding a new contact** if both a name and a phone number are provided.
+
+Here is the `mongo.js` file:
+
+```javascript
+const mongoose = require("mongoose");
+
+if (process.argv.length < 3) {
+  console.log("give password as argument");
+  process.exit(1);
+}
+
+const password = process.argv[2];
+// const name = process.argv[3];
+// const number = process.argv[4];
+
+const url = `mongodb+srv://oscarfs:${password}@cluster0.kaukhto.mongodb.net/phoneBook?retryWrites=true&w=majority&appName=Cluster0`;
+
+mongoose.set("strictQuery", false);
+
+mongoose.connect(url);
+
+// Defining the schema
+const personSchema = new mongoose.Schema({
+  name: String,
+  number: String,
+});
+
+// Creating the moddel based on my schema
+const Person = mongoose.model("Person", personSchema);
+
+// Adding a new person to the phonebook database
+if (process.argv.length > 4) {
+  const person = new Person({
+    name: process.argv[3],
+    number: process.argv[4],
+  });
+  person.save().then((result) => {
+    console.log(`added ${result.name} number ${result.number} to phonebook`);
+    mongoose.connection.close();
+  });
+} else if (process.argv.length === 3) {
+  Person.find({}).then((result) => {
+    console.log("phonebook:");
+    result.forEach((person) => {
+      console.log(`${person.name} ${person.number}`);
+    });
+    mongoose.connection.close();
+  });
+}
+```
+
+## Usage Instructions
+
+### Listing All Contacts
+
+To list all saved contacts, run:
+
+```sh
+node mongo.js mypassword
+```
+
+Example output:
+
+```sh
+phonebook:
+Oscar Moreno 555-558-8999
+Ana Mendoza 558-669-9999
+```
+
+### Adding a New Contact
+
+To add a contact, use:
+
+```sh
+node mongo.js mypassword "Ana Mendoza" 558-669-9999
+```
+
+Expected output:
+
+```
+added Ana Mendoza number 558-669-9999 to phonebook
+```
+
+## Key Learnings
+
+- **Mongoose models** automatically pluralize the collection name (`Person` → `people`).
+- **Command-line arguments (`process.argv`)** are used to accept user input.
+- **Database connection** must be closed properly after each operation.
+- **Environment variables** should be used to store sensitive data (e.g., passwords).
+
+✅ **Now the phonebook app is connected to a MongoDB cloud database!** 🚀
+
+![Exercise Preview](https://github.com/user-attachments/assets/e49e6e91-f90a-463a-8252-2e2e8f6771a2)
+
