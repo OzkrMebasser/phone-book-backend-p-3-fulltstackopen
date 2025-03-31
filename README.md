@@ -123,24 +123,24 @@ In this exercise, I generated a **production build** of the frontend and added i
 - API routes (`/api/persons`, `/info`, etc.) should still work as expected.
 - The application should work both locally and in production.
 
-**Here is an image running locally
+\*\*Here is an image running locally
 
 ![Exercise Preview](assets/part-3-exercise-3.11-locally-server-and-front-end.gif)
 
 ✅ **The full-stack Phonebook app is now deployed and working!** 🚀
 [!click here to see live preview](https://phone-book-backend-p-3-fulltstackopen.onrender.com/)
+or copy this link `https://phone-book-backend-p-3-fulltstackopen.onrender.com/`
 
 ---
+
 # 3.12: Command-line Database
 
 > [!NOTE]
 > In this exercise, I connected the phonebook application to a **cloud-based MongoDB database** using **MongoDB Atlas**.
 
-
 **Code of this project is in my folling GitHub repository**  
-`https://github.com/OzkrMebasser/phone-book-backend-p-3-fulltstackopen` 
+`https://github.com/OzkrMebasser/phone-book-backend-p-3-fulltstackopen`
 [click here!](https://github.com/OzkrMebasser/phone-book-backend-p-3-fulltstackopen)
-
 
 ## Setting Up MongoDB Atlas
 
@@ -258,5 +258,132 @@ added Ana Mendoza number 558-669-9999 to phonebook
 
 ✅ **Now the phonebook app is connected to a MongoDB cloud database!** 🚀
 
-![Exercise Preview](https://github.com/user-attachments/assets/e49e6e91-f90a-463a-8252-2e2e8f6771a2)
+![Exercise Preview]
+(https://github.com/user-attachments/assets/e49e6e91-f90a-463a-8252-2e2e8f6771a2)
+
+# 3.13: Phonebook Database - Step 1
+
+> [!NOTE]
+> In this exercise, I modified the phonebook application to fetch contacts from a **MongoDB database** using **Mongoose**.
+
+## Implemented Changes
+
+### 1. Creation of the `persons.js` Module
+
+To keep the code modular, I moved the Mongoose schema and model to a separate file.
+
+**`models/persons.js`**
+
+```javascript
+const mongoose = require("mongoose");
+
+mongoose.set("strictQuery", false);
+
+// Defining the schema
+const personSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  number: {
+    type: String,
+    required: true,
+  },
+});
+personSchema.set("toJSON", {
+  transform: (document, returnedObject) => {
+    returnedObject.id = returnedObject._id.toString();
+    delete returnedObject._id;
+    delete returnedObject.__v;
+  },
+});
+
+module.exports = mongoose.model("Person", personSchema);
+```
+
+### Removal of Hardcoded Data and Unnecessary Commented Code
+
+I removed the previously hardcoded persons array, as well as all unnecessary commented-out code from previous exercises. This helps eliminate redundant code, making the exercise cleaner and more readable.
+
+### 3. Connection to MongoDB
+
+The application now connects to MongoDB using Mongoose, directly in the `index.js` file (server):
+
+```javascript
+// Connect to MongoDB
+const url = process.env.MONGODB_URI;
+// console.log("This is my url string to connecto to mongo: ", url);
+mongoose
+  .connect(url)
+  .then(() => {
+    console.log("connected to MongoDB");
+  })
+  .catch((error) => {
+    console.log("error connecting to MongoDB:", error.message);
+  });
+```
+
+### 4. Implementing GET Routes Using MongoDB Methods
+
+#### Get All Contacts
+
+```javascript
+//Route to get all persons (GET method)
+app.get("/api/persons", (request, response) => {
+  Person.find({}).then((people) => {
+    response.json(people);
+  });
+});
+```
+
+#### Get a Contact by ID
+
+```javascript
+//Route to get a single person by id, and if not found, return 404 (GET method)
+app.get("/api/persons/:id", (request, response) => {
+  Person.findById(request.params.id).then((person) => {
+    // console.log(`This is the person checked with id: ${person.id}`, person)
+    if (person) {
+      response.json(person);
+    } else {
+      response.status(404).send({ error: `Person with id ${person.id} not found` });
+    }
+  });
+});
+```
+
+#### Phonebook Info
+
+```javascript
+//Route to get how many entries are there in the phonebook (GET method)
+app.get("/info", (request, response) => {
+  Person.countDocuments({}).then((count) => {
+    // console.log(count);
+    const date = new Date();
+    response.send(`Phonebook has info for ${count} people <br> ${date}`);
+  });
+});
+```
+
+## Testing
+
+I verified that the routes work correctly:
+
+- **GET `/api/persons`** returns all contacts from MongoDB.
+- **GET `/api/persons/:id`** retrieves a specific contact by ID or returns `404` if not found.
+- **GET `/info`** displays the total number of stored contacts along with the current date and time.
+
+The application is now fully connected to MongoDB and ready to handle GET requests.
+
+## Exercise Previews (MongoDB and Postman testing)
+https://github.com/user-attachments/assets/9c9cb40e-e0ba-42fa-a7ee-93a2e939dbbc
+
+## Exercise Previews (Frontend and server)
+https://github.com/user-attachments/assets/e41f05fb-7b4f-4ba5-a91d-ade8cf3bde62
+
+## Exercise Previews (VSC console, and logs to debug)
+https://github.com/user-attachments/assets/6bdeb554-6faa-4d7a-9d08-24c823019f6c
+
+
 
