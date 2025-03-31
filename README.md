@@ -258,8 +258,10 @@ added Ana Mendoza number 558-669-9999 to phonebook
 
 ✅ **Now the phonebook app is connected to a MongoDB cloud database!** 🚀
 
-![Exercise Preview]
-(https://github.com/user-attachments/assets/e49e6e91-f90a-463a-8252-2e2e8f6771a2)
+### Exercise Preview
+https://github.com/user-attachments/assets/e49e6e91-f90a-463a-8252-2e2e8f6771a2
+
+---
 
 # 3.13: Phonebook Database - Step 1
 
@@ -376,14 +378,80 @@ I verified that the routes work correctly:
 
 The application is now fully connected to MongoDB and ready to handle GET requests.
 
-## Exercise Previews (MongoDB and Postman testing)
+### Exercise Previews (MongoDB and Postman testing)
 https://github.com/user-attachments/assets/9c9cb40e-e0ba-42fa-a7ee-93a2e939dbbc
 
-## Exercise Previews (Frontend and server)
+### Exercise Previews (Frontend and server)
 https://github.com/user-attachments/assets/e41f05fb-7b4f-4ba5-a91d-ade8cf3bde62
 
-## Exercise Previews (VSC console, and logs to debug)
+### Exercise Previews (VSC console, and logs to debug)
 https://github.com/user-attachments/assets/6bdeb554-6faa-4d7a-9d08-24c823019f6c
 
+---
+
+# 3.14: Phonebook Database - Step 2
+
+> [!NOTE]
+> In this exercise, I modified the backend to save new contacts to the **MongoDB database**.
+
+## Implemented Changes
+
+### 1. POST Route to Add New Contacts
+
+The route to add new contacts to the phonebook was modified to save data to the database. Now, when a POST request is made to the `/api/persons` endpoint, the information is saved in MongoDB. The application also ensures that both the name and number are provided in the request body, and returns an error if either is missing.
+
+#### POST `/api/persons`
+
+```javascript
+// Route to add a new person (entry) to the phonebook (POST method), with validation
+app.post("/api/persons", (request, response) => {
+  const body = request.body;
+
+  // We check if the request body has the name and number
+  if (!body.name || !body.number) {
+    return response
+      .status(400)
+      .json({ error: "Both, name and number are required" });
+  }
+
+  const newPerson = new Person({
+    name: body.name,
+    number: body.number,
+  });
+
+  // We save the new person to the database
+  newPerson
+    .save()
+    .then((savedPerson) => {
+      response.status(201).json(savedPerson);
+      console.log(
+        `added ${savedPerson.name} number ${savedPerson.number} to phonebook`
+      );
+    })
+    .catch((error) => {
+      response.status(500).json({ error: error.message });
+    });
+});
+```
+
+In this implementation, the data is saved directly into MongoDB, and the application no longer checks for the uniqueness of the name at this stage, as instructed. Any incoming request will add a new contact regardless of whether the name already exists.
+
+### 2. Verifying the Frontend
+
+After making the changes to the backend, the frontend was verified to ensure that it still works correctly.
+
+## Testing
+
+I tested the following:
+
+- **POST `/api/persons`** works correctly by adding a new contact to the database. The response returns the saved contact.
+- The frontend still functions as expected after making the changes to the backend.
 
 
+### Exercise Previews (Frontend and MongoDB )
+https://github.com/user-attachments/assets/a8041779-9b69-444f-ae9c-b8df8856fe22
+
+### Exercise Previews (Postman testing, MongoDB, and VSC console)
+https://github.com/user-attachments/assets/e0a94fc6-bdc5-4e73-9096-ee81b773f955
+
+---

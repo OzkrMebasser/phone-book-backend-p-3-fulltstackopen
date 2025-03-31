@@ -101,6 +101,46 @@ app.get("/api/persons/:id", (request, response) => {
   });
 });
 
+// Route to add a new person (entry) to the phonebook (POST method), with validation
+app.post("/api/persons", (request, response) => {
+  const body = request.body;
+
+  // We check if the request body has the name and number
+  if (!body.name || !body.number) {
+    return response
+      .status(400)
+      .json({ error: "Both, name and number are required" });
+  }
+
+  const newPerson = new Person({
+    // id: Math.floor(Math.random() * 1000).toString(),
+    //We use the auto-generated id from mongodb
+    name: body.name,
+    number: body.number,
+  });
+
+  // We check if the name already exists in the phonebook
+  Person.findOne({ name: body.name })
+    .then((existingPerson) => {
+      if (existingPerson) {
+        return response.status(400).json({ error: "Name must be unique" });
+      }
+
+      // We save the new person to the database
+      return newPerson.save();
+    })
+    .then((savedPerson) => {
+      response.status(201).json(savedPerson);
+      console.log(
+        `added ${savedPerson.name} number ${savedPerson.number} to phonebook`
+      );
+    })
+    .catch((error) => {
+      response.status(500).json({ error: error.message });
+    });
+});
+
+
 const unknownEndpoint = (request, response) => {
   response.status(404).send({ error: "unknown endpoint" });
 };
