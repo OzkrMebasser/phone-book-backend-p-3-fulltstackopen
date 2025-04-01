@@ -510,5 +510,82 @@ https://github.com/user-attachments/assets/2153e4f7-edc3-4dc6-a4a7-5dd91fe2cf32
 
 https://github.com/user-attachments/assets/b25b904e-db2f-41f6-b2c7-277365d0ed64
 
-
 ---
+
+# 3.16: Phonebook Database - Step 4
+
+> [!NOTE]
+> In this exercise, I improved error handling by moving it to a dedicated middleware.
+
+## Implemented Changes
+
+### Error Handling Middleware
+
+I separated the middleware function to handle errors and placed it at the end of the middleware stack. This ensures that errors generated anywhere in the application are caught and handled properly.
+
+#### **Error Handler Middleware (`errorHandler`)**
+
+```javascript
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message);
+
+  if (error.name === "CastError") {
+    return response.status(400).json({ error: "malformatted id" });
+  }
+
+  next(error);
+};
+```
+
+- **Handles `CastError`**: If an invalid MongoDB ID is provided, it returns a `400 Bad Request` error.
+- **Logs Errors**: Errors are logged to the console.
+- **Passes Other Errors**: Any unhandled errors are passed to the next middleware.
+
+### Unknown Endpoint Middleware
+
+I also added a middleware to handle requests to unknown endpoints.
+
+#### **Unknown Endpoint Middleware (`unknownEndpoint`)**
+
+```javascript
+const unknownEndpoint = (request, response) => {
+  response.status(404).json({ error: "unknown endpoint" });
+};
+```
+
+This ensures that users receive a structured response instead of a generic error when accessing a non-existent route.
+
+### Integrating Middleware
+
+Both middleware functions were imported and applied in the main server file.
+
+```javascript
+const { errorHandler, unknownEndpoint } = require("./middlewares/middleware");
+
+// Middleware for unknown endpoints
+app.use(unknownEndpoint);
+
+// Middleware for error handling
+app.use(errorHandler);
+```
+
+## Testing
+
+I tested the following cases:
+
+1. **Accessing an invalid route**  
+   - Returns a `404 Not Found` error with the message `"unknown endpoint"`.
+
+2. **Fetching a contact with an invalid ID**  
+   - Returns a `400 Bad Request` error with the message `"malformatted id"`.
+
+3. **Creating, updating, and deleting contacts**  
+   - Ensures no unexpected errors occur.
+
+### Exercise Previews (Responses in browser)
+
+- **Testing invalid ID errors**
+- **Handling unknown routes correctly**
+- **Ensuring smooth error logging**
+
+https://github.com/user-attachments/assets/c6fe2720-76c4-4496-b488-5e7961d98045

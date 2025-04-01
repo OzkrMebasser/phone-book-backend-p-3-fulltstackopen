@@ -3,6 +3,7 @@ const express = require("express");
 const morgan = require("morgan");
 const cors = require("cors");
 const mongoose = require("mongoose");
+const { errorHandler, unknownEndpoint } = require("./middlewares/middleware");
 
 //Model
 const Person = require("./models/person");
@@ -161,23 +162,10 @@ app.delete("/api/persons/:id", (request, response) => {
     });
 });
 
-const unknownEndpoint = (request, response) => {
-  response.status(404).send({ error: "unknown endpoint" });
-};
-
+// Middleware for unknown endpoints
 app.use(unknownEndpoint);
 
 // Middleware for error handling
-const errorHandler = (error, request, response, next) => {
-  console.error(error.message);
-
-  if (error.name === "CastError") {
-    return response.status(400).send({ error: "malformatted id" });
-  }
-
-  next(error);
-};
-
 app.use(errorHandler);
 
 const PORT = process.env.PORT;
