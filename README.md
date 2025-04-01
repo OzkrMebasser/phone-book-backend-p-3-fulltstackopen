@@ -455,3 +455,60 @@ https://github.com/user-attachments/assets/a8041779-9b69-444f-ae9c-b8df8856fe22
 https://github.com/user-attachments/assets/e0a94fc6-bdc5-4e73-9096-ee81b773f955
 
 ---
+
+# 3.15: Phonebook Database - Step 3
+
+> [!NOTE]
+> In this exercise, I modified the backend so that deleting phonebook entries is reflected in the **MongoDB database**.
+
+## Implemented Changes
+
+### DELETE Route to Remove Contacts
+
+I added a new route that allows deleting a contact from the database. When a DELETE request is made to `/api/persons/:id`, the contact corresponding to the provided ID is removed.
+
+#### DELETE `/api/persons/:id`
+
+```javascript
+// Route to delete a person from the database
+app.delete("/api/persons/:id", (request, response) => {
+  Person.findByIdAndDelete(String(request.params.id))
+    .then((result) => {
+      // console.log(
+      //   `Deleted person with id: ${request.params.id} successfully, result: ${result}`
+      // );
+      response
+        .json({ success: true, message: "Person deleted successfully" })
+        .status(204)
+        .end();
+    })
+    .catch((error) => {
+      response.status(500).json({ error: error.message });
+    });
+});
+```
+
+This implementation ensures that the deletion is properly reflected in the MongoDB database.
+
+### Verifying the Frontend
+
+After implementing this change, I tested the frontend to ensure that it continues to function correctly. The UI correctly updates when a contact is deleted.
+
+## Testing
+
+I tested the following:
+
+- **DELETE `/api/persons/:id`** removes the specified contact from MongoDB.
+- The frontend correctly updates after a deletion.
+- Attempting to delete a non-existing ID does not crash the application.
+
+### Exercise Previews (Postman testing, MongoDB, VSC console, and frontend updates)
+
+https://github.com/user-attachments/assets/0e94d471-957b-4241-be30-5f3bd2dad8ea
+
+https://github.com/user-attachments/assets/2153e4f7-edc3-4dc6-a4a7-5dd91fe2cf32
+
+https://github.com/user-attachments/assets/b25b904e-db2f-41f6-b2c7-277365d0ed64
+
+
+---

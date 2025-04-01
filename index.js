@@ -90,15 +90,19 @@ app.get("/info", (request, response) => {
 });
 
 //Route to get a single person by id, and if not found, return 404 (GET method)
-app.get("/api/persons/:id", (request, response) => {
-  Person.findById(request.params.id).then((person) => {
-    // console.log(`This is the person checked with id: ${person.id}`, person)
-    if (person) {
-      response.json(person);
-    } else {
-      response.status(404).send({ error: `Person with id ${person.id} not found` });
-    }
-  });
+app.get("/api/persons/:id", (request, response, next) => {
+  Person.findById(request.params.id)
+    .then((person) => {
+      // console.log(`The person checked with id: ${person.id} is ${person.name}` )
+      if (person) {
+        response.json(person);
+      } else {
+        response
+          .status(404)
+          .send({ error: `Person with id ${request.params.id} not found` });
+      }
+    })
+    .catch((error) => next(error));
 });
 
 // Route to add a new person (entry) to the phonebook (POST method), with validation
@@ -140,12 +144,41 @@ app.post("/api/persons", (request, response) => {
     });
 });
 
+// Route to delete a person from the database
+app.delete("/api/persons/:id", (request, response) => {
+  Person.findByIdAndDelete(String(request.params.id))
+    .then((result) => {
+      // console.log(
+      //   `Deleted person with id: ${request.params.id} successfully, result: ${result}`
+      // );
+      response
+        .json({ success: true, message: "Person deleted successfully" })
+        .status(204)
+        .end();
+    })
+    .catch((error) => {
+      response.status(500).json({ error: error.message });
+    });
+});
 
 const unknownEndpoint = (request, response) => {
   response.status(404).send({ error: "unknown endpoint" });
 };
 
 app.use(unknownEndpoint);
+
+// Middleware for error handling
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message);
+
+  if (error.name === "CastError") {
+    return response.status(400).send({ error: "malformatted id" });
+  }
+
+  next(error);
+};
+
+app.use(errorHandler);
 
 const PORT = process.env.PORT;
 app.listen(PORT, () => {
