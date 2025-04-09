@@ -107,42 +107,67 @@ app.get("/api/persons/:id", (request, response, next) => {
 });
 
 // Route to add a new person (entry) to the phonebook (POST method), with validation
-app.post("/api/persons", (request, response) => {
-  const body = request.body;
+app.post("/api/persons", (request, response, next) => {
+  // const body = request.body;
+  const { name, number } = request.body;
 
   // We check if the request body has the name and number
-  if (!body.name || !body.number) {
+  if (!name || !number) {
     return response
       .status(400)
       .json({ error: "Both, name and number are required" });
   }
 
-  const newPerson = new Person({
-    // id: Math.floor(Math.random() * 1000).toString(),
-    //We use the auto-generated id from mongodb
-    name: body.name,
-    number: body.number,
-  });
-
   // We check if the name already exists in the phonebook
-  Person.findOne({ name: body.name })
+  Person.findOne({ name })
     .then((existingPerson) => {
       if (existingPerson) {
-        return response.status(400).json({ error: "Name must be unique" });
+        // If the name is found, we return a conflict response
+        return response.status(409).json({
+          error: "Name must be unique",
+          personExistsId: existingPerson.id,
+        });
+
+        // return response.status(400).json({ error: "Name must be unique" });
       }
 
+      // If the name is not found, we save the new person to the database
+      const newPerson = new Person({
+        // id: Math.floor(Math.random() * 1000).toString(),
+        //We use the auto-generated id from mongodb
+        name,
+        number,
+      });
       // We save the new person to the database
-      return newPerson.save();
+      return newPerson
+        .save()
+        .then((savedPerson) => response.json(savedPerson))
+        .catch((error) => next(error));
     })
-    .then((savedPerson) => {
-      response.status(201).json(savedPerson);
-      console.log(
-        `added ${savedPerson.name} number ${savedPerson.number} to phonebook`
-      );
+
+    .catch((error) => next(error));
+});
+
+//Rounte to update phone #, if the person is already in the database
+app.put("/api/persons/:id", (request, response, next) => {
+  const { name, number } = request.body;
+  const id = request.params.id;
+  // We check if the request body has the name and number
+  if (!name || !number) {
+    return response
+      .status(400)
+      .json({ error: "Both, name and number are required" });
+  }
+  // We find the person by id
+  Person.findByIdAndUpdate(id, { name, number }, { new: true })
+    .then((updatedPerson) => {
+      if (updatedPerson) {
+        response.json(updatedPerson);
+      } else {
+        response.status(404).json({ error: `Person with id ${id} not found` });
+      }
     })
-    .catch((error) => {
-      response.status(500).json({ error: error.message });
-    });
+    .catch((error) => next(error));
 });
 
 // Route to delete a person from the database

@@ -259,6 +259,7 @@ added Ana Mendoza number 558-669-9999 to phonebook
 ✅ **Now the phonebook app is connected to a MongoDB cloud database!** 🚀
 
 ### Exercise Preview
+
 https://github.com/user-attachments/assets/e49e6e91-f90a-463a-8252-2e2e8f6771a2
 
 ---
@@ -349,7 +350,9 @@ app.get("/api/persons/:id", (request, response) => {
     if (person) {
       response.json(person);
     } else {
-      response.status(404).send({ error: `Person with id ${person.id} not found` });
+      response
+        .status(404)
+        .send({ error: `Person with id ${person.id} not found` });
     }
   });
 });
@@ -379,12 +382,15 @@ I verified that the routes work correctly:
 The application is now fully connected to MongoDB and ready to handle GET requests.
 
 ### Exercise Previews (MongoDB and Postman testing)
+
 https://github.com/user-attachments/assets/9c9cb40e-e0ba-42fa-a7ee-93a2e939dbbc
 
 ### Exercise Previews (Frontend and server)
+
 https://github.com/user-attachments/assets/e41f05fb-7b4f-4ba5-a91d-ade8cf3bde62
 
 ### Exercise Previews (VSC console, and logs to debug)
+
 https://github.com/user-attachments/assets/6bdeb554-6faa-4d7a-9d08-24c823019f6c
 
 ---
@@ -447,11 +453,12 @@ I tested the following:
 - **POST `/api/persons`** works correctly by adding a new contact to the database. The response returns the saved contact.
 - The frontend still functions as expected after making the changes to the backend.
 
-
 ### Exercise Previews (Frontend and MongoDB )
+
 https://github.com/user-attachments/assets/a8041779-9b69-444f-ae9c-b8df8856fe22
 
 ### Exercise Previews (Postman testing, MongoDB, and VSC console)
+
 https://github.com/user-attachments/assets/e0a94fc6-bdc5-4e73-9096-ee81b773f955
 
 ---
@@ -573,13 +580,15 @@ app.use(errorHandler);
 
 I tested the following cases:
 
-1. **Accessing an invalid route**  
+1. **Accessing an invalid route**
+
    - Returns a `404 Not Found` error with the message `"unknown endpoint"`.
 
-2. **Fetching a contact with an invalid ID**  
+2. **Fetching a contact with an invalid ID**
+
    - Returns a `400 Bad Request` error with the message `"malformatted id"`.
 
-3. **Creating, updating, and deleting contacts**  
+3. **Creating, updating, and deleting contacts**
    - Ensures no unexpected errors occur.
 
 ### Exercise Previews (Responses in browser)
@@ -589,3 +598,137 @@ I tested the following cases:
 - **Ensuring smooth error logging**
 
 https://github.com/user-attachments/assets/c6fe2720-76c4-4496-b488-5e7961d98045
+
+---
+
+# 3.17: Phonebook Database - Step 5
+
+> [!NOTE]  
+> In this exercise, I modified the backend to support updating an existing contact's phone number if their name is already in the database.
+
+## Implemented Changes
+
+### Preventing Duplicate Names
+
+I updated the `POST /api/persons` route to check if the name already exists in the database. If it does, instead of creating a duplicate entry, the server responds with a `409 Conflict` status. This response includes the existing person's ID so the frontend can update the phone number instead.
+
+#### **Why a 409 Conflict Response?**
+
+The `409 Conflict` status is used when a request conflicts with the current state of the resource. In this case, adding a duplicate name goes against the requirement that names must be unique. By returning `409`, I signal to the frontend that instead of adding a new entry, it should update the existing one.
+
+More info about status 409? (see doc here): [https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/409]
+
+### Updating an Existing Contact
+
+To allow phone number updates, I added a `PUT /api/persons/:id` route. This route finds a person by their ID and updates their number while keeping their name unchanged.
+
+---
+
+## **Updated Code**
+
+### **POST `/api/persons`** (Prevents duplicate names)
+
+```javascript
+// Route to add a new person (entry) to the phonebook (POST method), with validation
+app.post("/api/persons", (request, response, next) => {
+  // const body = request.body;
+  const { name, number } = request.body;
+
+  // We check if the request body has the name and number
+  if (!name || !number) {
+    return response
+      .status(400)
+      .json({ error: "Both, name and number are required" });
+  }
+
+  // We check if the name already exists in the phonebook
+  Person.findOne({ name })
+    .then((existingPerson) => {
+      if (existingPerson) {
+        // If the name is found, we return a conflict response
+        return response.status(409).json({
+          error: "Name must be unique",
+          personExistsId: existingPerson.id,
+        });
+
+        // return response.status(400).json({ error: "Name must be unique" });
+      }
+
+      // If the name is not found, we save the new person to the database
+      const newPerson = new Person({
+        // id: Math.floor(Math.random() * 1000).toString(),
+        //We use the auto-generated id from mongodb
+        name,
+        number,
+      });
+      // We save the new person to the database
+      return newPerson
+        .save()
+        .then((savedPerson) => response.json(savedPerson))
+        .catch((error) => next(error));
+    })
+
+    .catch((error) => next(error));
+});
+```
+
+### **PUT `/api/persons/:id`** (Updates phone number if contact exists)
+
+```javascript
+//Rounte to update phone #, if the person is already in the database
+app.put("/api/persons/:id", (request, response, next) => {
+  const { name, number } = request.body;
+  const id = request.params.id;
+  // We check if the request body has the name and number
+  if (!name || !number) {
+    return response
+      .status(400)
+      .json({ error: "Both, name and number are required" });
+  }
+  // We find the person by id
+  Person.findByIdAndUpdate(id, { name, number }, { new: true })
+    .then((updatedPerson) => {
+      if (updatedPerson) {
+        response.json(updatedPerson);
+      } else {
+        response.status(404).json({ error: `Person with id ${id} not found` });
+      }
+    })
+    .catch((error) => next(error));
+});
+```
+
+## **Testing**
+
+I tested the following cases:
+
+1. **Adding a new contact**
+
+   - Works as expected when the name is unique.
+
+2. **Trying to add a contact with an existing name**
+
+   - Returns a `409 Conflict` response, allowing the frontend to update the phone number instead.
+
+3. **Updating a contact’s phone number via `PUT /api/persons/:id`**
+
+   - Successfully updates the number when the ID is valid.
+
+4. **Attempting to update a non-existing contact**
+   - Returns a `404 Not Found` error.
+
+
+### **Exercise Previews**
+
+- **Testing the `409 Conflict` response when adding a duplicate name**
+- **Verifying phone number updates through the `PUT` request**
+- **Ensuring frontend correctly handles updates**
+
+https://github.com/user-attachments/assets/2be1c913-8bd0-456b-af74-c2dfae895802
+
+https://github.com/user-attachments/assets/d2e6a9d1-96ca-4183-a0f7-a9f65711f2c0
+
+
+With these changes, my backend now fully supports updating existing contacts while maintaining unique names in the phonebook.
+
+---
