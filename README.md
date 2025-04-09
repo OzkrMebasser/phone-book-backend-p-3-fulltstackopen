@@ -717,7 +717,6 @@ I tested the following cases:
 4. **Attempting to update a non-existing contact**
    - Returns a `404 Not Found` error.
 
-
 ### **Exercise Previews**
 
 - **Testing the `409 Conflict` response when adding a duplicate name**
@@ -728,7 +727,79 @@ https://github.com/user-attachments/assets/2be1c913-8bd0-456b-af74-c2dfae895802
 
 https://github.com/user-attachments/assets/d2e6a9d1-96ca-4183-a0f7-a9f65711f2c0
 
-
 With these changes, my backend now fully supports updating existing contacts while maintaining unique names in the phonebook.
+
+---
+
+# 3.18: Phonebook Database - Step 6
+
+> [!NOTE]  
+> In this step, I updated the `/api/persons/:id` and `/info` routes to retrieve their data directly from the MongoDB database instead of the in-memory array. I also verified their functionality using the browser, Postman, and the VS Code REST client.
+
+## Implemented Changes
+
+### **`GET /info` Route Updated to Use MongoDB**
+
+Instead of counting the persons from a local array, I used `Person.countDocuments()` to get the total number of entries in the database. This makes the `/info` endpoint dynamic and accurate based on the current database state.
+
+```javascript
+//Route to get how many entries are there in the phonebook (GET method)
+app.get("/info", (request, response) => {
+  Person.countDocuments({}).then((count) => {
+    // console.log(count);
+    const date = new Date();
+    response.send(`Phonebook has info for ${count} people <br> ${date}`);
+  });
+});
+```
+
+### **`GET /api/persons/:id` Route Now Queries MongoDB**
+
+The route retrieves a person using `Person.findById()`. If the person exists, it returns the full JSON entry. If not found, it sends a `404 Not Found` response. I also ensured that `malformatted id` errors (e.g., invalid ObjectId format) are caught and handled properly by the error middleware.
+
+```javascript
+//Route to get a single person by id, and if not found, return 404 (GET method)
+app.get("/api/persons/:id", (request, response, next) => {
+  Person.findById(request.params.id)
+    .then((person) => {
+      // console.log(`The person checked with id: ${person.id} is ${person.name}` )
+      if (person) {
+        response.json(person);
+      } else {
+        response
+          .status(404)
+          .send({ error: `Person with id ${request.params.id} not found` });
+      }
+    })
+    .catch((error) => next(error));
+});
+```
+
+### **Error Handling Verified**
+
+- Tested invalid MongoDB IDs, and the error middleware correctly returned:
+
+  ```json
+  { "error": "malformatted id" }
+  ```
+
+- Tested non-existent valid ObjectIds, and the API responded with:
+  ```json
+  {
+    "error": "Person with id 67ee26015391eaac6dbe6b90 not found"
+  }
+  ```
+
+### **Database Integration**
+
+With this step, the backend no longer depends on any hardcoded data. All routes are now interacting with the MongoDB database, and responses reflect real-time data.
+
+
+### **Exercise Previews**
+
+
+https://github.com/user-attachments/assets/66bb4f9a-3b1f-4a44-ac50-8ab65467e626
+
+https://github.com/user-attachments/assets/88799653-48c0-41d6-84a6-49096c6d8904
 
 ---
