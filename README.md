@@ -794,12 +794,123 @@ app.get("/api/persons/:id", (request, response, next) => {
 
 With this step, the backend no longer depends on any hardcoded data. All routes are now interacting with the MongoDB database, and responses reflect real-time data.
 
-
 ### **Exercise Previews**
-
 
 https://github.com/user-attachments/assets/66bb4f9a-3b1f-4a44-ac50-8ab65467e626
 
 https://github.com/user-attachments/assets/88799653-48c0-41d6-84a6-49096c6d8904
 
 ---
+
+# 3.19\*: Phonebook Database - Step 7
+
+> [!NOTE]   
+> This step focuses on expanding validation in the backend and properly handling validation errors in the frontend.
+
+## Implemented Changes
+
+### Backend Validations
+
+I added a `minlength` constraint to the `name` field in the Mongoose schema to ensure that names must be at least **3 characters long**.
+
+In the `name` field, I added `required: [true, 'Name is required']` to ensure the field is mandatory, and in the `number` field, I added `required: [true, 'Number is required']` to make sure the number is also mandatory.
+
+#### **Updated Mongoose Schema (`models/person.js`)**
+
+```javascript
+const personSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: [true, 'Name is required'],
+    minlength: [3, "Name must be at least 3 characters long"],
+
+    unique: true,
+  },
+  number: {
+    type: String,
+    required: [true, 'Number is required'],
+  },
+});
+```
+
+- This prevents saving any person with a name shorter than 3 characters.
+- Ensures that both name and number are required fields.
+- If violated, Mongoose throws validation errors with a descriptive message.
+
+
+### Frontend Error Display
+
+I expanded the `catch` block when adding a new person to display the validation error message returned by the backend.
+
+#### **Updated Error Handling in `App.js`**
+
+```javascript
+.catch((error) => {
+        // console.log(error.response.data.error);
+
+        //* To improve the notification messages and make it more readable, I added these operations
+
+        const fullMessage = error.response.data.error;
+
+        // First, trim off the prefix: "Person validation failed:"
+        const trimmedMessage = fullMessage
+          .replace("Person validation failed:", "")
+          .trim();
+        // console.log("trimmedMessage", trimmedMessage);
+
+        // Then I split the message by commas, remove labels (name: or number:), and clean up spaces
+        const splitParts = trimmedMessage
+          .split(",")
+          .map((part) => part.replace(/^\s*(name|number):\s*/i, "").trim());
+        // console.log("parts", parts);
+
+        // Check if the message contains "name:" or "number:" errors
+        const hasNameError = trimmedMessage.toLowerCase().includes("name:");
+        const hasNumberError = trimmedMessage.toLowerCase().includes("number:");
+        // console.log(
+        //   "hasNameError",
+        //   hasNameError,
+        //   "hasNumberError",
+        //   hasNumberError
+        // );
+
+        let finalMessage = "";
+
+        if (hasNameError && hasNumberError && splitParts.length === 2) {
+          finalMessage = "Both, Name & Number are required";
+        } else {
+          finalMessage = splitParts.join(", ");
+        }
+        console.log(finalMessage);
+        setNotification({
+          message: `Error: ${finalMessage}`,
+          type: "error",
+        });
+
+        setTimeout(() => {
+          setNotification({ message: null, type: "" });
+        }, 5000);
+      });
+```
+
+This ensures that all fields are properly filled out, and the frontend displays clear and user-friendly error messages.
+---
+
+### Testing
+
+#### ✅ Valid Submissions
+
+- A name with 3 or more characters is successfully added.
+- All required fields (name and number) are properly filled out.
+
+#### ❌ Invalid Submissions
+
+- A name shorter than 3 characters triggers a clear and readable error notification.
+- Empty fields (name or number) result in an error message.
+
+### Preview
+https://github.com/user-attachments/assets/d6723fd8-ca2a-4695-9bfd-747f0b6cec94
+![VSC logs Preview](assets/part-3-exercise-3.19-phonebook-database-mongoseValidations.gif)
+
+---
+

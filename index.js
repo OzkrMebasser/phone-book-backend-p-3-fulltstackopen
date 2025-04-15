@@ -112,11 +112,12 @@ app.post("/api/persons", (request, response, next) => {
   const { name, number } = request.body;
 
   // We check if the request body has the name and number
-  if (!name || !number) {
-    return response
-      .status(400)
-      .json({ error: "Both, name and number are required" });
-  }
+  // if (!name || !number) {
+  //   return response
+  //     .status(400)
+  //     .json({ error: "Both, name and number are required" });
+  // }
+
 
   // We check if the name already exists in the phonebook
   Person.findOne({ name })

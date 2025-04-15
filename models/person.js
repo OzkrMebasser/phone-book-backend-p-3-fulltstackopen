@@ -6,12 +6,14 @@ mongoose.set("strictQuery", false);
 const personSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true,
+    required: [true, 'Name is required'],
+    minlength: [3, "Name must be at least 3 characters long"],
+
     unique: true,
   },
   number: {
     type: String,
-    required: true,
+    required: [true, 'Number is required'],
   },
 });
 personSchema.set("toJSON", {
