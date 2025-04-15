@@ -909,8 +909,93 @@ This ensures that all fields are properly filled out, and the frontend displays 
 - Empty fields (name or number) result in an error message.
 
 ### Preview
+
 https://github.com/user-attachments/assets/d6723fd8-ca2a-4695-9bfd-747f0b6cec94
+
+
+---
 ![VSC logs Preview](assets/part-3-exercise-3.19-phonebook-database-mongoseValidations.gif)
+
+---
+
+# 3.20\*: Phonebook Database - Step 8
+
+> [!NOTE]  
+> In this step, I implemented a **custom validator** in the Mongoose schema to ensure that phone numbers meet a specific format and length requirement from the exercise.
+
+## ✅ Phone Number Format Validation
+
+Phone numbers must:
+
+- Be at least **8 characters** long.
+- Follow the pattern: `XX-XXXXXXX` or `XXX-XXXXXXXX`, where the first part is 2 or 3 digits and the second part consists only of numbers.
+
+### ✅ Valid Examples
+
+- `09-1234556`  
+- `040-22334455`
+
+### ❌ Invalid Examples
+
+- `1234556`  
+- `1-22334455`  
+- `10-22-334455`  
+
+## 🔧 Updated Schema with Custom Validator
+
+```javascript
+const mongoose = require("mongoose");
+
+mongoose.set("strictQuery", false);
+
+// Defining the schema
+const personSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: [true, 'Name is required'],
+    minlength: [3, "Name must be at least 3 characters long"],
+    unique: true,
+  },
+  number: {
+    type: String,
+    validate: {
+      validator: function (v) {
+        // RegEx to validate the numbers formtat
+        return /^(\d{2}|\d{3})-\d+$/.test(v) && v.length >= 9;
+      },
+      message: (props) => `${props.value} is not a valid number, must be at least 8 characters long and formatted like 09-1234556 or 040-22334455!`,
+    },
+    required: [true, 'Number is required'],
+  },
+});
+
+personSchema.set("toJSON", {
+  transform: (document, returnedObject) => {
+    returnedObject.id = returnedObject._id.toString();
+    delete returnedObject._id;
+    delete returnedObject.__v;
+  },
+});
+
+module.exports = mongoose.model("Person", personSchema);
+```
+
+## ⚠️ Error Response Example
+
+If a user submits a number like `1234556`, the server will respond with:
+
+```json
+{
+  "error": "Validation failed: number: 1234556 is not a valid number, must be at least 8 characters long and formatted like 09-1234556 or 040-22334455!"
+}
+```
+
+The frontend handles this error using the same `catch` block logic introduced in step 3.19.
+
+### Preview
+
+https://github.com/user-attachments/assets/9fa13179-b9a1-4ea7-8f6c-27acb81163dd
+
 
 ---
 

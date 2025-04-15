@@ -13,6 +13,13 @@ const personSchema = new mongoose.Schema({
   },
   number: {
     type: String,
+    validate: {
+      validator: function (v) {
+        // RegEx to validate the numbers formtat
+        return /^(\d{2}|\d{3})-\d+$/.test(v) && v.length >= 9;
+      },
+      message: (props) => `${props.value} is not a valid number, must be at least 8 characters long and formatted like 09-1234556 or 040-22334455!`,
+    },
     required: [true, 'Number is required'],
   },
 });
