@@ -111,14 +111,6 @@ app.post("/api/persons", (request, response, next) => {
   // const body = request.body;
   const { name, number } = request.body;
 
-  // We check if the request body has the name and number
-  // if (!name || !number) {
-  //   return response
-  //     .status(400)
-  //     .json({ error: "Both, name and number are required" });
-  // }
-
-
   // We check if the name already exists in the phonebook
   Person.findOne({ name })
     .then((existingPerson) => {
@@ -128,8 +120,6 @@ app.post("/api/persons", (request, response, next) => {
           error: "Name must be unique",
           personExistsId: existingPerson.id,
         });
-
-        // return response.status(400).json({ error: "Name must be unique" });
       }
 
       // If the name is not found, we save the new person to the database

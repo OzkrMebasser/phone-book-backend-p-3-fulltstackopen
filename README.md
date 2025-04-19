@@ -996,6 +996,62 @@ The frontend handles this error using the same `catch` block logic introduced in
 
 https://github.com/user-attachments/assets/9fa13179-b9a1-4ea7-8f6c-27acb81163dd
 
-
 ---
+
+# 3.21: Deploying the Full Stack App to Production
+
+> [!NOTE]  
+> In this step, I deployed the full stack version of the phonebook app by copying the production build of the frontend into the backend and deploying the backend to **Render**.
+
+## 📦 Build and Integrate Frontend
+
+I created an optimized production build of the frontend using:
+
+```bash
+npm run build
+```
+
+Then, I **copied the `dist` folder** into the backend project so the backend could serve the frontend files:
+
+
+This way, the backend can serve the static frontend files from the same server.
+
+## 🌐 Local Testing
+
+I ran the backend server locally to confirm everything worked:
+
+```bash
+npm run dev
+```
+
+Visited the app at:
+
+- [http://localhost:3001](http://localhost:3001)
+
+The frontend was rendered correctly and all API routes worked.
+
+## 🚀 Deployment on Render
+
+Once everything worked locally, I pushed the backend (with the frontend build included) to a GitHub repository connected to **Render**.
+
+
+Render automatically installed dependencies, built the app, and deployed it.
+
+## 🔗 Live App
+
+The full stack application is now live at:
+
+- ✅ Render: [https://phone-book-backend-p-3-fulltstackopen.onrender.com/](https://phone-book-backend-p-3-fulltstackopen.onrender.com/)
+
+> The frontend is **served by the backend**, so there's no need for a separate deployment.
+
+### Previews
+
+#### Localhost:3001
+https://github.com/user-attachments/assets/6a371fc1-1d4c-4721-ba4b-d8a22f2e7078
+
+
+#### Render
+https://github.com/user-attachments/assets/32caf8f3-fcd0-4a81-bd9d-a821aa899844
+
 
