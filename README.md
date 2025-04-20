@@ -1054,4 +1054,93 @@ https://github.com/user-attachments/assets/6a371fc1-1d4c-4721-ba4b-d8a22f2e7078
 #### Render
 https://github.com/user-attachments/assets/32caf8f3-fcd0-4a81-bd9d-a821aa899844
 
+---
+
+# 3.22\*: Lint Configuration
+
+> [!NOTE]  
+> In this step, I integrated **ESLint** into the project to ensure consistent code style and catch potential issues early in development. I also fixed all the warnings reported by the linter.
+
+## 🔧 ESLint Installation and Configuration
+
+I installed ESLint along with the necessary plugins using:
+
+```bash
+npm install eslint @eslint/js --save-dev
+```
+
+Additionally, I configured the project to use the [**@stylistic/eslint-plugin-js**](https://www.npmjs.com/package/@stylistic/eslint-plugin-js) plugin to enforce stylistic rules.
+
+My ESLint configuration is defined in a `eslint.config.mjs` file:
+
+```javascript
+import globals from 'globals'
+import js from '@eslint/js'
+import stylisticJs from '@stylistic/eslint-plugin-js'
+
+export default [
+  js.configs.recommended,
+  {
+    files: ['**/*.js'],
+    languageOptions: {
+      sourceType: 'commonjs',
+      globals: { ...globals.node },
+      ecmaVersion: 'latest',
+    },
+    plugins: {
+      '@stylistic/js': stylisticJs,
+    },
+    rules: {
+      '@stylistic/js/indent': ['error', 2],
+      '@stylistic/js/linebreak-style': ['error', 'unix'],
+      '@stylistic/js/quotes': ['error', 'single'],
+      '@stylistic/js/semi': ['error', 'never'],
+      eqeqeq: 'error',
+      'no-trailing-spaces': 'error',
+      'object-curly-spacing': ['error', 'always'],
+      'arrow-spacing': ['error', { before: true, after: true }],
+      'no-console': 'off',
+    },
+  },
+  {
+    ignores: ['dist/**'],
+  },
+]
+```
+
+## 🛠️ Linting Script
+
+To lint the project, I added the following script to `package.json`:
+
+```json
+"scripts": {
+  "lint": "eslint ."
+}
+```
+
+Then, I ran:
+
+```bash
+npm run lint
+```
+
+and then fixed everything with:
+```bash
+npx eslint . --fix
+```
+
+All warnings and issues reported were addressed and fixed to ensure a clean linting result.
+
+## ✅ Final Steps
+
+- All code now follows consistent formatting and adheres to recommended ESLint rules.
+- The `dist` folder is excluded from linting.
+- Committed the changes and pushed the project to GitHub.
+
+### Preview of all errors (warnings) and fixed
+
+https://github.com/user-attachments/assets/7779ca65-323c-4db1-9dc1-6414ebdd5316
+
+---
+
 
